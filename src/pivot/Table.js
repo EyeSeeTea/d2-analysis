@@ -31,6 +31,7 @@ Table = function(layout, response, colAxis, rowAxis) {
         prettyPrint,
         doColTotals,
         doRowTotals,
+        doRowCumulativeTotals,
         doColSubTotals,
         doRowSubTotals,
         doSortableColumnHeaders,
@@ -235,6 +236,10 @@ Table = function(layout, response, colAxis, rowAxis) {
         return !!layout.showRowTotals;
     };
 
+    doRowCumulativeTotals = function() {
+        return !!layout.showRowCumulativeTotals;
+    };
+
     doColSubTotals = function() {
         return !!layout.showColSubTotals && rowAxis.type && rowAxis.dims > 1;
     };
@@ -381,6 +386,16 @@ Table = function(layout, response, colAxis, rowAxis) {
                         htmlValue: 'Total'
                     }, totalId));
                 }
+
+                if (i === 0 && (j === colAxis.size - 1) && doRowCumulativeTotals()) {
+                    dimHtml.push(getTdHtml({
+                        uuid: uuid(),
+                        type: 'dimensionTotal',
+                        cls: 'pivot-dim-total',
+                        rowSpan: colAxis.dims,
+                        htmlValue: 'Cumulative Total'
+                    }, null));
+                }
             }
 
             a.push(dimHtml);
@@ -394,6 +409,7 @@ Table = function(layout, response, colAxis, rowAxis) {
             axisAllObjects = [],
             xValueObjects,
             totalValueObjects = [],
+            cumulativeTotalValueObjects = [],
             mergedObjects = [],
             valueItemsCopy,
             colAxisSize = colAxis.type ? colAxis.size : 1,
@@ -537,6 +553,27 @@ Table = function(layout, response, colAxis, rowAxis) {
             }
         }
 
+        // cumulative totals
+        if (colAxis.type && doRowCumulativeTotals()) {
+            for (var i = 0, empty = [], total = 0; i < valueObjects.length; i++) {
+                for (j = 0, obj; j < valueObjects[i].length; j++) {
+                    obj = valueObjects[i][j];
+                    empty.push(obj.empty);
+                    total += obj.value;
+                }
+
+                cumulativeTotalValueObjects.push({
+                    type: 'valueTotal',
+                    cls: 'pivot-value-total',
+                    value: total,
+                    htmlValue: arrayContains(empty, false) ? getRoundedHtmlValue(total) : '',
+                    empty: !arrayContains(empty, false)
+                });
+
+                empty = [];
+            }
+        }
+
         // hide empty rows (dims/values/totals)
         if (colAxis.type && rowAxis.type) {
             if (layout.hideEmptyRows) {
@@ -555,6 +592,11 @@ Table = function(layout, response, colAxis, rowAxis) {
                         // hide totals by adding collapsed = true to all items
                         if (doRowTotals()) {
                             totalValueObjects[i].collapsed = true;
+                        }
+                        
+                        // hide cumulative totals by adding collapsed = true to all items
+                        if (doRowCumulativeTotals()) {
+                            cumulativeTotalValueObjects[i].collapsed = true;
                         }
 
                         // hide/reduce parent dim span
@@ -732,6 +774,7 @@ Table = function(layout, response, colAxis, rowAxis) {
 
             if (colAxis.type) {
                 row = row.concat(totalValueObjects[i]);
+                row = row.concat(cumulativeTotalValueObjects[i]);
             }
 
             mergedObjects.push(row);
@@ -831,6 +874,24 @@ Table = function(layout, response, colAxis, rowAxis) {
             }
 
             if (colAxis.type && rowAxis.type) {
+                a.push(getTdHtml({
+                    type: 'valueGrandTotal',
+                    cls: 'pivot-value-grandtotal',
+                    value: total,
+                    htmlValue: arrayContains(empty, false) ? getRoundedHtmlValue(total) : '',
+                    empty: !arrayContains(empty, false)
+                }));
+            }
+        }
+
+        if (doRowCumulativeTotals() && doColTotals()) {
+            for (var i = 0, total = 0, obj; i < totalColObjects.length; i++) {
+                obj = totalColObjects[i];
+                total += obj.value;
+                empty.push(obj.empty);
+            }
+
+            if (colAxis && rowAxis) {
                 a.push(getTdHtml({
                     type: 'valueGrandTotal',
                     cls: 'pivot-value-grandtotal',

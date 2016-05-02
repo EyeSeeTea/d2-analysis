@@ -77,7 +77,8 @@ Table = function(layout, response, colAxis, rowAxis) {
     };
 
     getTdHtml = function(config, metaDataId) {
-        var bgColor,
+        var color,
+            bgColor,
             legends,
             colSpan,
             rowSpan,
@@ -131,8 +132,9 @@ Table = function(layout, response, colAxis, rowAxis) {
             legends = layout.legendSet.legends;
 
             for (var i = 0; i < legends.length; i++) {
-                if (numberConstrain(value, legends[i].startValue, legends[i].endValue) === value) {
-                    bgColor = legends[i].color;
+                if (value >= legends[i].startValue && value <= legends[i].endValue) {
+                    color = legends[i].color;
+                    bgColor = legends[i].bgColor;
                 }
             }
         }
@@ -171,7 +173,10 @@ Table = function(layout, response, colAxis, rowAxis) {
             //html += '</div></div></div></td>';
         //}
         //else {
-            html += 'style="' + (bgColor && isValue ? 'color:' + bgColor + '; ' : '') + '">' + htmlValue + '</td>';
+            html += 'style="' +
+            (color && isValue ? 'color:' + color + '; ' : '') +
+            (bgColor && isValue ? 'background-color:' + bgColor + '; ' : '') +
+             '">' + htmlValue + '</td>';
         //}
 
         return html;

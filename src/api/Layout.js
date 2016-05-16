@@ -43,6 +43,7 @@ Layout = function(c, applyConfig, forceApplyConfig) {
 
     t.showColTotals = isBoolean(c.colTotals) ? c.colTotals : (isBoolean(c.showColTotals) ? c.showColTotals : true);
     t.showRowTotals = isBoolean(c.rowTotals) ? c.rowTotals : (isBoolean(c.showRowTotals) ? c.showRowTotals : true);
+    t.showRowCumulativeTotals = isBoolean(c.rowCumulativeTotals) ? c.rowCumulativeTotals : (isBoolean(c.showRowCumulativeTotals) ? c.showRowCumulativeTotals : false);
     t.showColSubTotals = isBoolean(c.colSubTotals) ? c.colSubTotals : (isBoolean(c.showColSubTotals) ? c.showColSubTotals : true);
     t.showRowSubTotals = isBoolean(c.rowSubTotals) ? c.rowSubTotals : (isBoolean(c.showRowSubTotals) ? c.showRowSubTotals : true);
     t.showDimensionLabels = isBoolean(c.showDimensionLabels) ? c.showDimensionLabels : (isBoolean(c.showDimensionLabels) ? c.showDimensionLabels : true);
@@ -363,7 +364,8 @@ Layout.prototype.toPlugin = function(el) {
             'showHierarchy',
             'completedOnly',
             'legendSet',
-            'sorting'
+            'sorting',
+            'showRowCumulativeTotals'
         ];
 
         var deleteAnyway = [
@@ -441,6 +443,9 @@ Layout.prototype.toPost = function() {
 
     this.rowTotals = this.showRowTotals;
     delete this.showRowTotals;
+    
+    this.rowCumulativeTotals = this.showRowCumulativeTotals;
+    delete this.showRowCumulativeTotals;
 
     this.colTotals = this.showColTotals;
     delete this.showColTotals;

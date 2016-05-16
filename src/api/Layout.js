@@ -28,6 +28,7 @@ Layout = function(c, applyConfig, forceApplyConfig) {
     $.extend(c, applyConfig);
 
     // private
+    var _appManager = t.klass.appManager;
     var _source = '/api/analytics';
     var _format = 'json';
 
@@ -75,6 +76,16 @@ Layout = function(c, applyConfig, forceApplyConfig) {
     t.sortOrder = isNumber(c.sortOrder) ? c.sortOrder : 0;
     t.topLimit = isNumber(c.topLimit) ? c.topLimit : 0;
 
+        // Legend set
+    if (_appManager.legendSets && t.legendSet && t.legendSet.id)  {
+        for (var i = 0, legendSet; i < _appManager.legendSets.length; i++) {
+            legendSet = _appManager.legendSets[i];
+            if (legendSet.id === t.legendSet.id) {
+                $.extend(t.legendSet, legendSet);
+                break;
+            }
+         }
+    }
         // sharing
     _access = isObject(c.access) ? c.access : null;
 

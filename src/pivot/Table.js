@@ -31,6 +31,7 @@ Table = function(layout, response, colAxis, rowAxis) {
         prettyPrint,
         doColTotals,
         doRowTotals,
+        doColCumulativeTotals,
         doRowCumulativeTotals,
         doColSubTotals,
         doRowSubTotals,
@@ -39,6 +40,7 @@ Table = function(layout, response, colAxis, rowAxis) {
         getRowHtmlArray,
         rowAxisHtmlArray,
         getColTotalHtmlArray,
+        getColCumulativeTotalHtmlArray,
         getGrandTotalHtmlArray,
         getTotalHtmlArray,
         getHtml,
@@ -62,6 +64,7 @@ Table = function(layout, response, colAxis, rowAxis) {
         valueItems = [],
         valueObjects = [],
         totalColObjects = [],
+        cumulativeTotalColObjects = [],
         uuidDimUuidsMap = {},
         //isLegendSet = isObject(xLayout.legendSet) && isArray(xLayout.legendSet.legends) && xLayout.legendSet.legends.length,
         isLegendSet = false,
@@ -239,6 +242,10 @@ Table = function(layout, response, colAxis, rowAxis) {
 
     doRowTotals = function() {
         return !!layout.showRowTotals;
+    };
+
+    doColCumulativeTotals = function() {
+        return !!layout.showColCumulativeTotals;
     };
 
     doRowCumulativeTotals = function() {
@@ -865,6 +872,38 @@ Table = function(layout, response, colAxis, rowAxis) {
         return a;
     };
 
+    getColCumulativeTotalHtmlArray = function() {
+        var a = [];
+
+        if (rowAxis.type && doColCumulativeTotals()) {
+            // total col items
+            for (var i = 0, total = 0, empty = []; i < valueObjects[0].length; i++) {
+                for (var j = 0, obj; j < valueObjects.length; j++) {
+                    obj = valueObjects[j][i];
+                    total += obj.value;
+                    empty.push(!!obj.empty);
+                }
+
+                // col total
+                cumulativeTotalColObjects.push({
+                    type: 'valueTotal',
+                    value: total,
+                    htmlValue: arrayContains(empty, false) ? getRoundedHtmlValue(total) : '',
+                    empty: !arrayContains(empty, false),
+                    cls: 'pivot-value-total'
+                });
+
+                empty = [];
+            }
+            
+            for (var i = 0; i < cumulativeTotalColObjects.length; i++) {
+                a.push(getTdHtml(cumulativeTotalColObjects[i]));
+            }
+        }
+        
+        return a;
+    }
+
     getGrandTotalHtmlArray = function() {
         var total = 0,
             empty = [],
@@ -889,24 +928,6 @@ Table = function(layout, response, colAxis, rowAxis) {
             }
         }
 
-        if (doRowCumulativeTotals() && doColTotals()) {
-            for (var i = 0, total = 0, obj; i < totalColObjects.length; i++) {
-                obj = totalColObjects[i];
-                total += obj.value;
-                empty.push(obj.empty);
-            }
-
-            if (colAxis && rowAxis) {
-                a.push(getTdHtml({
-                    type: 'valueGrandTotal',
-                    cls: 'pivot-value-grandtotal',
-                    value: total,
-                    htmlValue: arrayContains(empty, false) ? getRoundedHtmlValue(total) : '',
-                    empty: !arrayContains(empty, false)
-                }));
-            }
-        }
-
         return a;
     };
 
@@ -914,6 +935,7 @@ Table = function(layout, response, colAxis, rowAxis) {
         var dimTotalArray,
             colTotal = getColTotalHtmlArray(),
             grandTotal = getGrandTotalHtmlArray(),
+            cumulativeTotal = getColCumulativeTotalHtmlArray(),
             row,
             a = [];
 
@@ -929,6 +951,20 @@ Table = function(layout, response, colAxis, rowAxis) {
 
             row = [].concat(dimTotalArray || [], colTotal || [], grandTotal || []);
 
+            a.push(row);
+        }
+
+        if (doColCumulativeTotals()) {
+            if (rowAxis.type) {
+                dimTotalArray = [getTdHtml({
+                    type: 'dimensionSubtotal',
+                    cls: 'pivot-dim-total',
+                    colSpan: rowAxis.dims,
+                    htmlValue: 'Cumulative Total'
+                })];
+            }
+
+            row = [].concat(dimTotalArray || [], cumulativeTotal || []);
             a.push(row);
         }
 

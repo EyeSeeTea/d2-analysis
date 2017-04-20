@@ -21,6 +21,12 @@ EastRegion = function(c) {
 
     var descriptionMaxNumberCharacter = 200;
 
+    var openInterpretationWindow = function(id) {
+        instanceManager.getSharingById(id || instanceManager.getStateFavoriteId(), function(r) {
+            InterpretationWindow(c, r).show();
+        });
+    };
+
     var getLink = function(text, isBold, isBrackets) {
         return (isBrackets ? '<span class="bold">[</span> ' : '') +
             '<span class="eastPanelLink' + (isBold ? ' bold' : '') + '">' + text + '</span>' +
@@ -201,11 +207,7 @@ EastRegion = function(c) {
                 cls: 'interpretationDetailsField',
                 listeners: {
                     'render': function(label) {
-                        label.getEl().on('click', function() {
-                            instanceManager.getSharingById(instanceManager.getStateFavoriteId(), function(r)  {
-                                SharingWindow(c, r).show();
-                            });
-                        }, label);
+                        label.getEl().on('click', function() { openInterpretationWindow() }, label);
                     }
                 }
             }];
@@ -652,11 +654,7 @@ EastRegion = function(c) {
                 cls: 'interpretationActions',
                 listeners: {
                     'render': function(label) {
-                        label.getEl().on('click', function() {
-                            instanceManager.getSharingById(instanceManager.getStateFavoriteId(), function(r) {
-                                InterpretationWindow(c, r).show();
-                            });
-                        }, label);
+                        label.getEl().on('click', function() { openInterpretationWindow() }, label);
                     }
                 }
             }]
@@ -767,6 +765,7 @@ EastRegion = function(c) {
      */
     return Ext.create('Ext.panel.Panel', {
         region: 'east',
+        openInterpretationWindow: openInterpretationWindow,
         preventHeader: true,
         collapsible: true,
         collapseMode: 'mini',

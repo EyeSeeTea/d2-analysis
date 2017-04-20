@@ -220,7 +220,8 @@ InstanceManager.prototype.getSharingById = function(id, fn) {
         baseUrl: t.appManager.getApiPath() + '/sharing',
         type: 'json',
         success: success,
-        error: function() {
+        error: function(res) {
+            t.uiManager.alert(res);
             t.uiManager.unmask();
         }
     });

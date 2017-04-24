@@ -270,13 +270,13 @@ EastRegion = function(c) {
 
         var numberOfCommentsToDisplay = 3;
 
-        var getWriteCommentBox = function(comment) {
+        var getWriteCommentBox = function(comment, visible) {
             return {
                 xtype: 'panel',
                 bodyStyle: 'border-style:none',
                 layout: 'column',
-                itemId: 'commentPanel',
-                hidden: !comment,
+                itemId: 'commentPanel-' + (comment ? comment.id : "new"),
+                hidden: !visible,
                 style: 'margin-top: 1px;',
                 cls: 'comment greyBackground',
                 items: [{
@@ -312,16 +312,37 @@ EastRegion = function(c) {
                             }
                         }
                     }, {
-                        xtype: 'label',
-                        html: getLink(i18n.post_comment),
-                        cls: 'link',
-                        listeners: {
-                            'render': function(label) {
-                                label.getEl().on('click', function() {
-                                    commentInterpretation(this.up("[xtype='panel']").down('#commentArea'), comment)
-                                }, label);
+                        xtype: 'panel',
+                        bodyStyle: 'border-style:none',
+                        items: [{
+                            xtype: 'label',
+                            html: getLink(i18n.post_comment),
+                            cls: 'link',
+                            listeners: {
+                                'render': function(label) {
+                                    label.getEl().on('click', function() {
+                                        commentInterpretation(this.up("panel").up("panel").down('#commentArea'), comment)
+                                    }, label);
+                                }
                             }
-                        }
+                        }, {
+                            xtype: 'label',
+                            text: '·',
+                            hidden: !comment,
+                            style: 'margin-left: 5px; margin-right: 5px;'
+                        }, {
+                            xtype: 'label',
+                            html: getLink(i18n.cancel),
+                            hidden: !comment,
+                            cls: 'link',
+                            listeners: {
+                                'render': function(label) {
+                                    label.getEl().on('click', function() {
+                                        cancelCommentEdit(this, comment);
+                                    }, label);
+                                }
+                            }
+                        }]
                     }],
                     columnWidth: 0.89
                 }]
@@ -334,17 +355,17 @@ EastRegion = function(c) {
             var commentsPanel = [];
 
             // Textarea to comment
-            commentsPanel.push(getWriteCommentBox());
+            commentsPanel.push(getWriteCommentBox(null, true));
 
             // Comments
             // Sorting by last updated
             arraySort(comments, 'DESC', 'lastUpdated');
             for (var i = 0; i < comments.length; i++) {
                 var comment = comments[i];
-
                 commentsPanel.push({
                     xtype: 'panel',
                     bodyStyle: 'border-style:none;',
+                    id: 'commentContent-' + comment.id,
                     cls: 'comment greyBackground',
                     layout: 'column',
                     hidden: (i > numberOfCommentsToDisplay - 1),
@@ -411,9 +432,9 @@ EastRegion = function(c) {
                                 'render': (function(comment_) {
                                     return function(label) {
                                         label.getEl().on('click', function() {
-                                            var el = this;
+                                            var label = this;
                                             uiManager.confirmCommentDelete(function() {
-                                                deleteComment(el, comment_);
+                                                deleteComment(label, comment_);
                                             });
                                         }, this);
                                     };
@@ -423,6 +444,9 @@ EastRegion = function(c) {
                         columnWidth: 0.89
                     }]
                 });
+
+                // Box to edit the comment
+                commentsPanel.push(getWriteCommentBox(comment, false));
             }
 
             // Show more comments
@@ -549,11 +573,18 @@ EastRegion = function(c) {
             });
         };
 
-        var editComment = function(el, comment) {
-            var commentItem = el.up().up();
-            var insertIndex = commentItem.ownerCt.items.items.indexOf(commentItem);
-            commentItem.hide();
-            commentItem.ownerCt.insert(insertIndex, getWriteCommentBox(comment));
+        var editComment = function(label, comment) {
+            var commentBox = label.up('#commentContent-' + comment.id);
+            var editableCommentBox = commentBox.next();
+            commentBox.hide();
+            editableCommentBox.show();
+        };
+
+        var cancelCommentEdit = function(label, comment) {
+            var editableCommentBox = label.up('#commentPanel-' + comment.id);
+            var commentBox = editableCommentBox.prev();
+            editableCommentBox.hide();
+            commentBox.show();
         };
 
         // Create tooltip for Like link
@@ -640,7 +671,7 @@ EastRegion = function(c) {
                         listeners: {
                             'render': function(label) {
                                 label.getEl().on('click', function() {
-                                    this.up('#interpretationPanel' + interpretation.id).down('#commentPanel').show();
+                                    this.up('#interpretationPanel' + interpretation.id).down('#commentPanel-new').show();
                                     this.up('#interpretationPanel' + interpretation.id).down('#commentArea').focus();
                                 }, this);
                             }

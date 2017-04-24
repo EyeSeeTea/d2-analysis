@@ -21,10 +21,19 @@ EastRegion = function(c) {
 
     var descriptionMaxNumberCharacter = 200;
 
-    var openInterpretationWindow = function(id) {
-        instanceManager.getSharingById(id || instanceManager.getStateFavoriteId(), function(r) {
-            InterpretationWindow(c, r).show();
+    var openInterpretationWindow = function(id, interpretation, success) {
+        var favoriteId = id || instanceManager.getStateFavoriteId();
+        instanceManager.getSharingById(favoriteId, function(r) {
+            InterpretationWindow(c, r, interpretation, success).show();
         });
+    };
+
+    var userCanManageInterpretation = function(interpretation) {
+        return interpretation.user.id == appManager.userAccount.id || appManager.isAdmin;
+    };
+
+    var userCanManageComment = function(comment) {
+        return comment.user.id == appManager.userAccount.id || appManager.isAdmin;
     };
 
     var getLink = function(text, isBold, isBrackets) {
@@ -261,18 +270,13 @@ EastRegion = function(c) {
 
         var numberOfCommentsToDisplay = 3;
 
-        // Create inner comments panel depending on comments
-        var getCommentsPanel = function(comments) {
-
-            var commentsPanel = [];
-
-            // Textarea to comment
-            commentsPanel.push({
+        var getWriteCommentBox = function(comment) {
+            return {
                 xtype: 'panel',
                 bodyStyle: 'border-style:none',
                 layout: 'column',
                 itemId: 'commentPanel',
-                hidden: true,
+                hidden: !comment,
                 style: 'margin-top: 1px;',
                 cls: 'comment greyBackground',
                 items: [{
@@ -295,6 +299,7 @@ EastRegion = function(c) {
                         itemId: 'commentArea',
                         cls: 'commentArea',
                         emptyText: i18n.write_your_interpretation,
+                        value : comment && comment.text,
                         submitEmptyText: false,
                         flex: 1,
                         border: 0,
@@ -302,7 +307,7 @@ EastRegion = function(c) {
                         listeners: {
                             keypress: function(f, e) {
                                 if (e.getKey() == e.ENTER && !e.shiftKey) {
-                                    commentInterpretation(f);
+                                    commentInterpretation(f, comment);
                                 }
                             }
                         }
@@ -313,14 +318,23 @@ EastRegion = function(c) {
                         listeners: {
                             'render': function(label) {
                                 label.getEl().on('click', function() {
-                                    commentInterpretation(this.up("[xtype='panel']").down('#commentArea'))
+                                    commentInterpretation(this.up("[xtype='panel']").down('#commentArea'), comment)
                                 }, label);
                             }
                         }
                     }],
                     columnWidth: 0.89
                 }]
-            });
+            };
+        };
+
+        // Create inner comments panel depending on comments
+        var getCommentsPanel = function(comments) {
+
+            var commentsPanel = [];
+
+            // Textarea to comment
+            commentsPanel.push(getWriteCommentBox());
 
             // Comments
             // Sorting by last updated
@@ -370,6 +384,41 @@ EastRegion = function(c) {
                             xtype: 'label',
                             style: 'color: #666',
                             text: DateManager.getTimeDifference(comment.lastUpdated) + ' ' + i18n.ago
+                        }, {
+                            xtype: 'label',
+                            html: getLink(i18n.edit),
+                            hidden: !userCanManageComment(comment),
+                            style: 'margin-right: 5px; margin-left: 5px',
+                            listeners: {
+                                'render': (function(comment_) {
+                                    return function(label) {
+                                        label.getEl().on('click', function() {
+                                            editComment(this, comment_);
+                                        }, this);
+                                    };
+                                })(comment)
+                            }
+                        }, {
+                            xtype: 'label',
+                            text: '·',
+                            style: 'margin-right: 5px;'
+                        }, {
+                            xtype: 'label',
+                            html: getLink(i18n.delete_),
+                            style: 'margin-right: 5px;',
+                            hidden: !userCanManageComment(comment),
+                            listeners: {
+                                'render': (function(comment_) {
+                                    return function(label) {
+                                        label.getEl().on('click', function() {
+                                            var el = this;
+                                            uiManager.confirmCommentDelete(function() {
+                                                deleteComment(el, comment_);
+                                            });
+                                        }, this);
+                                    };
+                                })(comment)
+                            }
                         }],
                         columnWidth: 0.89
                     }]
@@ -416,7 +465,8 @@ EastRegion = function(c) {
 
         var refreshInterpretationDataModel = function(interpretationPanel) {
             Ext.Ajax.request({
-                url: encodeURI(apiPath + '/interpretations/' + interpretation.id + '.json?fields=*,user[id,displayName],likedBy[id,displayName],comments[lastUpdated,text,user[id,displayName]]'),
+                url: encodeURI(apiPath + '/interpretations/' + interpretation.id + 
+                    '.json?fields=*,user[id,displayName],likedBy[id,displayName],comments[id,lastUpdated,text,user[id,displayName]]'),
                 method: 'GET',
                 scope: this,
                 success: function(r) {
@@ -450,24 +500,60 @@ EastRegion = function(c) {
         };
 
         // Call comment interpretation, update data model and update/reload panel
-        var commentInterpretation = function(f) {
-            if (f.getValue().trim() != '') {
+        var commentInterpretation = function(f, comment) {
+            var text = f.getValue();
+            
+            if (text.trim() != '') {
+                var commentsUrl = encodeURI(apiPath + '/interpretations/' + interpretation.id + '/comments')
                 Ext.Ajax.request({
-                    url: encodeURI(apiPath + '/interpretations/' + interpretation.id + '/comments'),
-                    method: 'POST',
-                    params: f.getValue(),
+                    url: comment ? commentsUrl + '/' + comment.id : commentsUrl,
+                    method: comment ? 'PUT' : 'POST',
+                    params: text,
                     headers: {
                         'Content-Type': 'text/plain'
                     },
                     success: function() {
-                        // Clear up comment textarea
-                        f.reset();
-
-                        // Refreshing interpretation panel
                         refreshInterpretationDataModel(f.up('#interpretationPanel' + interpretation.id));
                     }
                 });
             }
+        };
+
+        // Update an interpretation update data model and update/reload panel
+        var editInterpretation = function(el) {
+            openInterpretationWindow(null, interpretation, function() {
+                var interpretationPanel = el.up('#interpretationPanel' + interpretation.id);
+                interpretationPanel.updateInterpretationPanelItems(interpretation);
+            });
+        };
+
+        // Delete an interpretation and return to main interpretations panel
+        var deleteInterpretation = function() {
+            Ext.Ajax.request({
+                url: encodeURI(apiPath + '/interpretations/' + interpretation.id),
+                method: 'DELETE',
+                success: function() {
+                    instanceManager.getById(instanceManager.getStateCurrent().id);
+                }
+            });
+        };
+
+        // Delete a comment interpretation, update data model and update/reload panel
+        var deleteComment = function(el, comment) {
+            Ext.Ajax.request({
+                url: encodeURI(apiPath + '/interpretations/' + interpretation.id + '/comments/' + comment.id),
+                method: 'DELETE',
+                success: function() {
+                    refreshInterpretationDataModel(el.up('#interpretationPanel' + interpretation.id));
+                }
+            });
+        };
+
+        var editComment = function(el, comment) {
+            var commentItem = el.up().up();
+            var insertIndex = commentItem.ownerCt.items.items.indexOf(commentItem);
+            commentItem.hide();
+            commentItem.ownerCt.insert(insertIndex, getWriteCommentBox(comment));
         };
 
         // Create tooltip for Like link
@@ -556,6 +642,40 @@ EastRegion = function(c) {
                                 label.getEl().on('click', function() {
                                     this.up('#interpretationPanel' + interpretation.id).down('#commentPanel').show();
                                     this.up('#interpretationPanel' + interpretation.id).down('#commentArea').focus();
+                                }, this);
+                            }
+                        }
+                    }, {
+                        xtype: 'label',
+                        text: '·',
+                        style: 'margin-right: 5px;'
+                    }, {
+                        xtype: 'label',
+                        html: getLink(i18n.edit),
+                        hidden: !userCanManageInterpretation(interpretation),
+                        style: 'margin-right: 5px;',
+                        listeners: {
+                            'render': function(label) {
+                                label.getEl().on('click', function() {
+                                    editInterpretation(this);
+                                }, this);
+                            }
+                        }
+                    }, {
+                        xtype: 'label',
+                        text: '·',
+                        style: 'margin-right: 5px;'
+                    }, {
+                        xtype: 'label',
+                        html: getLink(i18n.delete_),
+                        hidden: !userCanManageInterpretation(interpretation),
+                        style: 'margin-right: 5px;',
+                        listeners: {
+                            'render': function(label) {
+                                label.getEl().on('click', function() {
+                                    uiManager.confirmInterpretationDelete(function() {
+                                        deleteInterpretation();
+                                    });
                                 }, this);
                             }
                         }

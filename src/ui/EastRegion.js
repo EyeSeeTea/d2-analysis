@@ -19,7 +19,7 @@ EastRegion = function(c) {
         path = appManager.getPath(),
         apiPath = appManager.getApiPath();
 
-    var descriptionMaxNumberCharacter = 200;
+    var descriptionMaxNumberCharacter = 500;
 
     var openInterpretationWindow = function(id, interpretation, success) {
         var favoriteId = id || instanceManager.getStateFavoriteId();
@@ -73,7 +73,7 @@ EastRegion = function(c) {
                     cls: 'interpretationActions'
                 });
 
-                // Longer than 200 characters -> Create More/Less link
+                // Longer than [descriptionMaxNumberCharacter] characters -> Create More/Less link
                 if (isTooLongDescription) {
                     var longDescription = description;
 

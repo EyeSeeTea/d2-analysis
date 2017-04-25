@@ -25,7 +25,7 @@ EastRegion = function(c) {
         var favoriteId = id || instanceManager.getStateFavoriteId();
         instanceManager.getSharingById(favoriteId, function(r) {
             InterpretationWindow(c, r, interpretation, success).show();
-        });
+        }, {allowForbidden: true});
     };
 
     var userCanManageInterpretation = function(interpretation) {

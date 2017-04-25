@@ -204,8 +204,9 @@ InstanceManager.prototype.delById = function(id, fn, doMask, doUnmask) {
     request.run();
 };
 
-InstanceManager.prototype.getSharingById = function(id, fn) {
+InstanceManager.prototype.getSharingById = function(id, fn, options) {
     var t = this;
+    options = options || {};
 
     var success = function(r) {
         fn && fn(r);
@@ -221,8 +222,13 @@ InstanceManager.prototype.getSharingById = function(id, fn) {
         type: 'json',
         success: success,
         error: function(res) {
-            t.uiManager.alert(res);
-            t.uiManager.unmask();
+            // If allowForbidden enabled, call the callback anyway, with an empty object
+            if (res.status == 403 && options.allowForbidden) {
+                success(null);
+            } else {
+                t.uiManager.alert(res);
+                t.uiManager.unmask();
+            }
         }
     });
 

@@ -216,7 +216,11 @@ EastRegion = function(c) {
                 cls: 'interpretationDetailsField',
                 listeners: {
                     'render': function(label) {
-                        label.getEl().on('click', function() { openInterpretationWindow() }, label);
+                        label.getEl().on('click', function() {
+                            instanceManager.getSharingById(instanceManager.getStateFavoriteId(), function(r) {
+                                SharingWindow(c, r).show();
+                            });
+                        }, label);
                     }
                 }
             }];

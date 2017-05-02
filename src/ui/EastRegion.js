@@ -102,19 +102,21 @@ EastRegion = function(c) {
                 }
 
                 // Change Link
-                descriptionItems.push({
-                    xtype: 'label',
-                    html: getLink(editText, false, true),
-                    cls: 'interpretationActions',
-                    style: 'margin: 1px 3px 0;',
-                    listeners: {
-                        'render': function(label) {
-                            label.getEl().on('click', function() {
-                                RenameWindow(c, instanceManager.getStateFavorite()).show();
-                            }, label);
+                if (layout && layout.permission === "write") {
+                    descriptionItems.push({
+                        xtype: 'label',
+                        html: getLink(editText, false, true),
+                        cls: 'interpretationActions',
+                        style: 'margin: 1px 3px 0;',
+                        listeners: {
+                            'render': function(label) {
+                                label.getEl().on('click', function() {
+                                    RenameWindow(c, instanceManager.getStateFavorite()).show();
+                                }, label);
+                            }
                         }
-                    }
-                });
+                    });
+                }
 
                 return descriptionItems;
             };
@@ -212,7 +214,8 @@ EastRegion = function(c) {
                 fieldLabel: i18n.sharing,
                 labelStyle: 'padding-top:0',
                 style: 'margin-bottom:3px',
-                value: getSharingText(layout) + '<span style="padding-left:10px">' + getLink(editText, false, true) + '</span>',
+                value: getSharingText(layout) + (layout && layout.permission === 'write' ? 
+                    '<span style="padding-left:10px">' + getLink(editText, false, true) + '</span>' : ''),
                 cls: 'interpretationDetailsField',
                 listeners: {
                     'render': function(label) {
@@ -270,7 +273,7 @@ EastRegion = function(c) {
      */
 
     // Create interpretation panel depending on interpretation
-    var getInterpretationPanel = function(interpretation, displayingComments) {
+    var getInterpretationPanel = function(layout, interpretation, displayingComments) {
 
         var numberOfCommentsToDisplay = 3;
 
@@ -280,7 +283,7 @@ EastRegion = function(c) {
                 bodyStyle: 'border-style:none',
                 layout: 'column',
                 itemId: 'commentPanel-' + (comment ? comment.id : "new"),
-                hidden: !visible,
+                hidden: !visible || (!layout || layout.permission === "none"),
                 style: 'margin-top: 1px;',
                 cls: 'comment greyBackground',
                 items: [{
@@ -654,11 +657,12 @@ EastRegion = function(c) {
                     xtype: 'panel',
                     bodyStyle: 'border-style:none',
                     style: 'margin-bottom: 5px;',
+                    hidden: !layout || layout.permission === "none",
+
                     items: [{
                         xtype: 'label',
                         html: isLiked(interpretation) ? getLink(i18n.unlike) : getLink(i18n.like),
                         style: 'margin-right: 5px;',
-
                         listeners: {
                             'render': function(label) {
                                 label.getEl().on('click', likeUnlikeInterpretation, this);
@@ -671,6 +675,7 @@ EastRegion = function(c) {
                     }, {
                         xtype: 'label',
                         html: getLink(i18n.comment),
+
                         style: 'margin-right: 5px;',
                         listeners: {
                             'render': function(label) {
@@ -794,14 +799,14 @@ EastRegion = function(c) {
         return interpretationPanel;
     };
 
-    var getTopInterpretationsPanel = function(interpretations, displayingInterpretation) {
+    var getTopInterpretationsPanel = function(layout, interpretations, displayingInterpretation) {
         var topInterpretationPanelItems = [];
 
         var shareInterpretationPanel = {
             xtype: 'panel',
             bodyStyle: 'border-style:none',
             style: 'padding:6px; border-width:0 0 1px 0; border-style:solid;',
-            hidden: displayingInterpretation,
+            hidden: displayingInterpretation || (!layout || layout.permission === "none"),
             itemId: 'shareInterpretation',
             items: [{
                 xtype: 'label',
@@ -899,13 +904,13 @@ EastRegion = function(c) {
             var interpretationId = layout.interpretationId;
 
             //Get top interpretations panel depending on interpretations and if we are displaying an interpretation
-            this.add(this.getTopInterpretationsPanel(interpretations, interpretationId != undefined));
+            this.add(this.getTopInterpretationsPanel(layout, interpretations, interpretationId != undefined));
 
             // Add an interpretation panel per interpretation
             if (interpretations != undefined && interpretations.length > 0) {
                 for (var i = 0; i < interpretations.length; i++) {
                     if (interpretations[i].id == interpretationId || interpretationId == undefined){
-                        this.add(this.getInterpretationPanel(interpretations[i], (interpretations[i].id == interpretationId)));
+                        this.add(this.getInterpretationPanel(layout, interpretations[i], (interpretations[i].id == interpretationId)));
                     }
                 }
             }

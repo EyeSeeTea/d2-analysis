@@ -939,7 +939,9 @@ EastRegion = function(c) {
             this.getComponent('detailsPanel').addAndUpdateFavoritePanel(layout);
 
             // Favorite loaded with interpretations ->  Add interpretation panel and update
-            this.getComponent('interpretationsPanel').addAndUpdateInterpretationsPanel(layout);
+            if (layout.interpretations) {
+                this.getComponent('interpretationsPanel').addAndUpdateInterpretationsPanel(layout);
+            }
         },
         listeners: {
             expand: function() {

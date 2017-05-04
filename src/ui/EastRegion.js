@@ -165,6 +165,8 @@ EastRegion = function(c) {
             }
 
             // Favorite Details Panel content when favorite loaded
+            var userCanEditSharing = layout && layout.permission === 'write';
+
             detailsPanelItems = [{
                 xtype: 'panel',
                 itemId: 'descriptionPanel',
@@ -214,17 +216,19 @@ EastRegion = function(c) {
                 fieldLabel: i18n.sharing,
                 labelStyle: 'padding-top:0',
                 style: 'margin-bottom:3px',
-                value: getSharingText(layout) + (layout && layout.permission === 'write' ? 
+                value: getSharingText(layout) + (userCanEditSharing ? 
                     '<span style="padding-left:10px">' + getLink(editText, false, true) + '</span>' : ''),
                 cls: 'interpretationDetailsField',
                 listeners: {
                     'render': function(label) {
-                        label.getEl().on('click', function() {
-                            instanceManager.getSharingById(instanceManager.getStateFavoriteId(), function(r) {
-                                SharingWindow(c, r).show();
-                            });
-                        }, label);
-                    }
+                        if (userCanEditSharing) {
+                            label.getEl().on('click', function() {
+                                instanceManager.getSharingById(instanceManager.getStateFavoriteId(), function(r) {
+                                    SharingWindow(c, r).show();
+                                });
+                            }, label);
+                        }
+                    } 
                 }
             }];
         } else {

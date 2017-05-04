@@ -679,7 +679,6 @@ EastRegion = function(c) {
                     }, {
                         xtype: 'label',
                         html: getLink(i18n.comment),
-
                         style: 'margin-right: 5px;',
                         listeners: {
                             'render': function(label) {

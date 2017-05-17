@@ -105,7 +105,7 @@ InstanceManager = function(refs) {
     };
 };
 
-InstanceManager.prototype.getLayout = function(layoutConfig, applyKeys) {
+InstanceManager.prototype.getLayout = function(layoutConfig, fromFavorite) {
     var t = this,
         favorite = t.getStateFavorite(),
         layout;
@@ -115,7 +115,9 @@ InstanceManager.prototype.getLayout = function(layoutConfig, applyKeys) {
     layout = new t.api.Layout(t.refs, layoutConfig);
 
     if (layout) {
-        layout.apply(favorite, applyKeys);
+        layout = fromFavorite ? 
+            favorite.apply(layout, Object.keys(layout)) : 
+            layout.apply(favorite);
     }
 
     return layout;
@@ -332,16 +334,7 @@ InstanceManager.prototype.getReport = function(layout, isFavorite, skipState, fo
 
     // layout
     if (!layout) {
-        layout = this.getLayout(undefined, [
-            'id',
-            'name',
-            'description',
-            'created',
-            'displayDescription',
-            'lastUpdated',
-            'user',
-            'interpretations'
-        ]);
+        layout = this.getLayout(undefined, true);
 
         if (!layout) {
             return;

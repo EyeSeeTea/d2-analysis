@@ -334,7 +334,7 @@ InstanceManager.prototype.getReport = function(layout, isFavorite, skipState, fo
 
     // layout
     if (!layout) {
-        layout = this.getLayout(undefined, true);
+        layout = t.getLayout(undefined, true);
 
         if (!layout) {
             return;

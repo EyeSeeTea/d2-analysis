@@ -992,6 +992,7 @@ EastRegion = function(c) {
         collapsible: true,
         collapseMode: 'mini',
         collapsed: true,
+        autoScroll: true,
         border: false,
         width: uiConfig.west_width + uiManager.getScrollbarSize().width,
         items: [detailsPanel, interpretationsPanel],

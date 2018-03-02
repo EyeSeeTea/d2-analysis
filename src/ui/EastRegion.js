@@ -42,6 +42,26 @@ EastRegion = function(c) {
             (isBrackets ? ' <span class="bold">]</span>' : '');
     };
 
+    var getFavoriteClass = function(layout) {
+        return layout.favorite ? "favorite-enabled" : "favorite-disabled";
+    };
+
+    var toggleFavorite = function(favoritableId, favorite, onSuccess) {
+        var url = [apiPath, instanceManager.apiEndpoint, favoritableId, "favorite"].join("/");
+        var method = favorite ? "DELETE" : "POST";
+
+        Ext.Ajax.request({
+            url: encodeURI(url),
+            method: method,
+            success: function() {
+                onSuccess(!favorite);
+            },
+            failure: function(err) {
+                uiManager.alert("Cannot toggle favorite");
+            }
+        });
+    };
+
     /*
      * FAVORITE DETAILS PANEL
      */
@@ -176,8 +196,23 @@ EastRegion = function(c) {
                 xtype: 'panel',
                 itemId: 'descriptionPanel',
                 bodyStyle: 'border-style:none;',
-                style: 'margin-bottom:5px;',
+                style: 'margin-bottom:5px; padding-right: 32px',
                 items: [getDescriptionPanel(layout.displayDescription)]
+            }, {
+                xtype: 'button',
+                style: 'position: absolute; top: 0px; right: 10px; border: none',
+                baseCls: "favorite",
+                iconCls: getFavoriteClass(layout),
+                listeners: {
+                    'render': function(button) {
+                        button.getEl().on('click', function() {
+                            toggleFavorite(layout.id, layout.favorite, function(favorite) {
+                                layout.favorite = favorite;
+                                button.setIconCls(getFavoriteClass(layout));
+                            });
+                        }, button);
+                    }
+                },
             }, {
                 xtype: 'displayfield',
                 fieldLabel: i18n.owner,

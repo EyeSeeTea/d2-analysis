@@ -63,6 +63,9 @@ Layout = function(refs, c, applyConfig, forceApplyConfig) {
         // title
     t.title = arrayClean([c.displayShortName, c.title]).find(item => isString(item));
 
+        // favorite
+    t.favorite = isBoolean(c.favorite) ? c.favorite : false;
+
         // description
     if (isString(c.description)) {
         t.description = c.description;

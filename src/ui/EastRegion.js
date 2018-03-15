@@ -488,10 +488,7 @@ EastRegion = function(c) {
                             'render': function(label) {
                                 label.getEl().on('click', function() {
                                     numberOfCommentsToDisplay = comments.length;
-                                    var panel = this.up('#interpretationPanel' + interpretation.id);
-                                    var commentEls = panel.getEl().query(".commentView").map(Ext.get);
-                                    commentEls.forEach(function(comment) { comment.setVisible(true); });
-                                    label.setVisible(false);
+                                    this.up('#interpretationPanel' + interpretation.id).updateInterpretationPanelItems();
                                 }, label);
                             }
                         }

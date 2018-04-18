@@ -42,22 +42,22 @@ EastRegion = function(c) {
             (isBrackets ? ' <span class="bold">]</span>' : '');
     };
 
-    var getSubscriberClass = function(layout) {
-        return layout.subscribed ? "subscriber-enabled" : "subscriber-disabled";
+    var getFavoriteClass = function(layout) {
+        return layout.favorite ? "favorite-enabled" : "favorite-disabled";
     };
 
-    var toggleSubscriber = function(subscribableId, isSubscribed, onSuccess) {
-        var url = [apiPath, instanceManager.apiEndpoint, subscribableId, "subscriber"].join("/");
-        var method = isSubscribed ? "DELETE" : "POST";
+    var toggleFavorite = function(favoritableId, favorite, onSuccess) {
+        var url = [apiPath, instanceManager.apiEndpoint, favoritableId, "favorite"].join("/");
+        var method = favorite ? "DELETE" : "POST";
 
         Ext.Ajax.request({
             url: encodeURI(url),
             method: method,
             success: function() {
-                onSuccess(!isSubscribed);
+                onSuccess(!favorite);
             },
             failure: function(err) {
-                uiManager.alert("Cannot toggle subscription");
+                uiManager.alert("Cannot toggle favorite");
             }
         });
     };
@@ -201,14 +201,14 @@ EastRegion = function(c) {
             }, {
                 xtype: 'button',
                 style: 'position: absolute; top: 0px; right: 10px; border: none',
-                baseCls: "subscriber",
-                iconCls: getSubscriberClass(layout),
+                baseCls: "favorite",
+                iconCls: getFavoriteClass(layout),
                 listeners: {
                     'render': function(button) {
                         button.getEl().on('click', function() {
-                            toggleSubscriber(layout.id, layout.subscribed, function(isSubcribed) {
-                                layout.subscribed = isSubcribed;
-                                button.setIconCls(getSubscriberClass(layout));
+                            toggleFavorite(layout.id, layout.favorite, function(favorite) {
+                                layout.favorite = favorite;
+                                button.setIconCls(getFavoriteClass(layout));
                             });
                         }, button);
                     }

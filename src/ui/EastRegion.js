@@ -46,6 +46,10 @@ EastRegion = function(c) {
         return layout.subscribed ? "subscriber-enabled" : "subscriber-disabled";
     };
 
+    var getSubscriberTitle = function(layout) {
+        return layout.subscribed ? i18n.unsubscribe_title : i18n.subscribe_title;
+    };
+
     var toggleSubscriber = function(subscribableId, isSubscribed, onSuccess) {
         var url = [apiPath, instanceManager.apiEndpoint, subscribableId, "subscriber"].join("/");
         var method = isSubscribed ? "DELETE" : "POST";
@@ -205,6 +209,18 @@ EastRegion = function(c) {
                 iconCls: getSubscriberClass(layout),
                 listeners: {
                     'render': function(button) {
+
+                        var subscriberToolTip = Ext.create('Ext.tip.ToolTip', {
+                            target: button.getEl(),
+                            html: getSubscriberTitle(layout),
+                            bodyStyle: 'background-color: white;border',
+                            listeners: {
+                                beforeshow: function updateTipBody(tip) {
+                                    subscriberToolTip.update( getSubscriberTitle(layout) );
+                                }
+                            }
+                        });
+
                         button.getEl().on('click', function() {
                             toggleSubscriber(layout.id, layout.subscribed, function(isSubcribed) {
                                 layout.subscribed = isSubcribed;

@@ -148,7 +148,7 @@ EastRegion = function(c) {
                 }
 
                 // Change Link
-                if (layout && layout.permission === "write") {
+                if (layout && layout.getAccess().write) {
                     descriptionItems.push({
                         xtype: 'label',
                         html: getLink(editText, false, true),
@@ -211,7 +211,7 @@ EastRegion = function(c) {
             }
 
             // Favorite Details Panel content when favorite loaded
-            var userCanEditSharing = layout && layout.permission === 'write';
+            var userCanEditSharing = layout && layout.getAccess().write;
 
             detailsPanelItems = [{
                 xtype: 'panel',
@@ -393,7 +393,7 @@ EastRegion = function(c) {
                 bodyStyle: 'border-style:none',
                 layout: 'column',
                 itemId: 'commentPanel-' + (comment ? comment.id : "new"),
-                hidden: !visible || (!layout || layout.permission === "none"),
+                hidden: !visible || (!layout || !layout.getAccess().read),
                 style: 'margin-top: 1px;',
                 cls: 'comment greyBackground',
                 items: [{
@@ -629,7 +629,7 @@ EastRegion = function(c) {
         var refreshInterpretationDataModel = function(interpretationPanel) {
             Ext.Ajax.request({
                 url: encodeURI(apiPath + '/interpretations/' + interpretation.id + 
-                    '.json?fields=*,user[id,displayName,userCredentials[username]],likedBy[id,displayName],comments[id,lastUpdated,text,user[id,displayName]]'),
+                    '.json?fields=*,user[id,displayName,userCredentials[username]],likedBy[id,displayName],comments[id,access,lastUpdated,text,user[id,displayName]]'),
                 method: 'GET',
                 scope: this,
                 success: function(r) {
@@ -804,13 +804,11 @@ EastRegion = function(c) {
                 style: 'margin-top: 1px;',
                 itemId: 'likePanelSelected',
                 hidden: !displayingComments,
-
                 items: [{
                     xtype: 'panel',
                     bodyStyle: 'border-style:none',
                     style: 'margin-bottom: 5px;',
-                    hidden: !layout || layout.permission === "none",
-
+                    hidden: !layout || !layout.getAccess().read,
                     items: [{
                         xtype: 'label',
                         html: isLiked(interpretation) ? getLink(i18n.unlike) : getLink(i18n.like),
@@ -970,7 +968,7 @@ EastRegion = function(c) {
             xtype: 'panel',
             bodyStyle: 'border-style:none',
             style: 'padding:6px; border-width:0 0 1px 0; border-style:solid;',
-            hidden: displayingInterpretation || (!layout || layout.permission === "none"),
+            hidden: displayingInterpretation || (!layout || !layout.getAccess().read),
             itemId: 'shareInterpretation',
             items: [{
                 xtype: 'label',

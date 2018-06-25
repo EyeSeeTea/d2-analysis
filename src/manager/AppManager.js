@@ -32,7 +32,7 @@ AppManager = function(refs) {
     t.defaultAnalysisFields = [
         '*',
         'interpretations[*,user[id,displayName,userCredentials[username]],likedBy[id,displayName],' +
-            'comments[id,lastUpdated,text,user[id,displayName,userCredentials[username]]]]',
+            'comments[id,access,lastUpdated,text,user[id,displayName,userCredentials[username]]]]',
         'columns[dimension,filter,legendSet[id],items[dimensionItem~rename(id),dimensionItemType,$]]',
         'rows[dimension,filter,legendSet[id],items[dimensionItem~rename(id),dimensionItemType,$]]',
         'filters[dimension,filter,legendSet[id],items[dimensionItem~rename(id),dimensionItemType,$]]',

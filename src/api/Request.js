@@ -147,14 +147,14 @@ Request.prototype.setComplete = function(fn) {
 Request.prototype.url = function(extraParams) {
     var params = arrayClean([].concat(this.params, arrayFrom(extraParams)));
 
-    return this.baseUrl + (params.length ? '?' + params.join('&') : '');
+    return unescape(this.baseUrl + (params.length ? '?' + params.join('&') : ''));
 };
 
 // dep 1
 
 Request.prototype.run = function(config) {
     var t = this,
-        url = unescape(encodeURI(this.url()));
+        url = this.url();
 
     config = isObject(config) ? config : {};
 

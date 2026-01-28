@@ -50,7 +50,10 @@ GroupSetContainer = function(refs) {
             }
         },
         getOptionSetOptions: (optionSetId, filters, limit, callbackFn) => {
-            const params = [`filter=optionSet.id:eq:${optionSetId}`, 'fields=code,name'];
+            const params = [
+              `filter=optionSet.id:eq:${optionSetId}`,
+              'fields=code,displayName~rename(name)',
+            ];
 
             if (limit) {
                 params.push(`pageSize=${defaultPageSize}`);

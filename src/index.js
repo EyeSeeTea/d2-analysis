@@ -66,7 +66,6 @@ import { categoryOptionGroupSetsInit } from './init/categoryOptionGroupSetsInit.
 import { SimpleRegression } from './util/SimpleRegression.js';
 import { Plugin } from './util/Plugin.js';
 import * as dom from './util/dom.js';
-import sanitize from "./util/sanitize.js";
 
 import { extOverrides } from './override/extOverrides.js';
 import { extChartOverrides } from './override/extChartOverrides.js';
@@ -233,7 +232,6 @@ export const util = {
     SimpleRegression,
     Plugin,
     dom,
-    sanitize,
 };
 
 export const override = {

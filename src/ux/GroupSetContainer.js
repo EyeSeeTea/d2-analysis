@@ -5,6 +5,8 @@ import isArray from 'd2-utilizr/lib/isArray';
 import isObject from 'd2-utilizr/lib/isObject';
 import isString from 'd2-utilizr/lib/isString';
 
+import { escape } from '../util/sanitize';
+
 import containerConfig from './containerConfig';
 
 export var GroupSetContainer;
@@ -251,7 +253,8 @@ GroupSetContainer = function(refs) {
                     var me = this,
                         records = [];
 
-                    const filter = `code:in:[${codeArray.join(',')}]`;
+                    const codes = codeArray.map(escape).join(',');
+                    const filter = `code:in:[${codes}]`;
 
                     container.getOptionSetOptions(
                         container.dataElement.optionSet.id,

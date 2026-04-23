@@ -5,6 +5,8 @@ import isArray from 'd2-utilizr/lib/isArray';
 import isObject from 'd2-utilizr/lib/isObject';
 import isString from 'd2-utilizr/lib/isString';
 
+import { escape } from '../util/sanitize';
+
 import containerConfig from './containerConfig';
 
 export var GroupSetContainer;
@@ -12,7 +14,7 @@ export var GroupSetContainer;
 GroupSetContainer = function(refs) {
     var { api, appManager } = refs;
 
-    const defaultPageSize = 100;
+    const defaultPageSize = 500;
 
     Ext.define('Ext.ux.container.GroupSetContainer', {
         extend: 'Ext.container.Container',
@@ -48,7 +50,10 @@ GroupSetContainer = function(refs) {
             }
         },
         getOptionSetOptions: (optionSetId, filters, limit, callbackFn) => {
-            const params = [`filter=optionSet.id:eq:${optionSetId}`, 'fields=code,name'];
+            const params = [
+              `filter=optionSet.id:eq:${optionSetId}`,
+              'fields=code,displayName~rename(name)',
+            ];
 
             if (limit) {
                 params.push(`pageSize=${defaultPageSize}`);
@@ -245,7 +250,8 @@ GroupSetContainer = function(refs) {
                     var me = this,
                         records = [];
 
-                    const filter = `code:in:[${codeArray.join(',')}]`;
+                    const codes = codeArray.map(escape).join(',');
+                    const filter = `code:in:[${codes}]`;
 
                     container.getOptionSetOptions(
                         container.dataElement.optionSet.id,

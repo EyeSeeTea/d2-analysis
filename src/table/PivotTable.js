@@ -677,10 +677,23 @@ PivotTable.prototype.getDivisorValue = function(id) {
  * @returns {object}
  */
 PivotTable.prototype.getUuidObjectMap = function() {
-    return objectApplyIf(
-        (this.colAxis ? this.colAxis.uuidObjectMap : {}),
-        (this.rowAxis ? this.rowAxis.uuidObjectMap : {})
-    );
+    const mergedMap = new Map();
+
+    if (this.colAxis && this.colAxis.uuidObjectMap) {
+        for (const [key, value] of this.colAxis.uuidObjectMap) {
+            mergedMap.set(key, value);
+        }
+    }
+
+    if (this.rowAxis && this.rowAxis.uuidObjectMap) {
+        for (const [key, value] of this.rowAxis.uuidObjectMap) {
+            if (!mergedMap.has(key)) {
+                mergedMap.set(key, value);
+            }
+        }
+    }
+
+    return mergedMap;
 };
 
 /**

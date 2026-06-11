@@ -36,7 +36,7 @@ export const PivotTableAxis = function(refs, layout, response, type, options = {
     this.response = response;
 
     this.totalLookup = {};
-    this.uuidObjectMap = {};
+    this.uuidObjectMap = new Map();
     this.items = [];
     this.span = [];
     this.ids = [];
@@ -108,7 +108,7 @@ export const PivotTableAxis = function(refs, layout, response, type, options = {
                 isOrganisationUnit: response.hasIdByDimensionName(id, 'ou'),
             };
 
-            this.uuidObjectMap[dimensionObject.uuid] = dimensionObject;
+            this.uuidObjectMap.set(dimensionObject.uuid, dimensionObject);
 
             if (dimensionIndex !== 0) {
                 dimensionObject.parent = aaAllFloorObjects[dimensionIndex - 1][positionIndex];

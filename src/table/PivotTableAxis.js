@@ -36,7 +36,7 @@ export const PivotTableAxis = function(refs, layout, response, type, options = {
     this.response = response;
 
     this.totalLookup = {};
-    this.uuidObjectMap = {};
+    this.uuidObjectMap = new Map();
     this.items = [];
     this.span = [];
     this.ids = [];
@@ -62,6 +62,26 @@ export const PivotTableAxis = function(refs, layout, response, type, options = {
     const dimensionIdsFilterFn = ids => ids.filter(id => !id.includes('EMPTY_UID'));
 
     const dimensionNameIdsMap = layout.getDimensionNameIdsMap(response, layout.hideNaData ? dimensionIdsFilterFn : null);
+
+    // Remove dimension IDs that have no data in response.
+    this.items.forEach((dimension) => {
+        const dimName = dimension.dimension;
+        const header = response.getHeaderByName(dimName);
+        if (!header || !dimensionNameIdsMap[dimName]) return;
+
+        const activeIds = new Set();
+        response.rows.forEach((row) => {
+            let id = row.getAt(header.getIndex());
+            if (header.isPrefix) {
+                id = response.getPrefixedId(id, dimName);
+            };
+            activeIds.add(id);
+        });
+
+        if (activeIds.size > 0) {
+            dimensionNameIdsMap[dimName] = dimensionNameIdsMap[dimName].filter((id) => activeIds.has(id));
+        }
+    });
 
     const aaUniqueFloorIds = (() => {
         let dims;
@@ -108,7 +128,7 @@ export const PivotTableAxis = function(refs, layout, response, type, options = {
                 isOrganisationUnit: response.hasIdByDimensionName(id, 'ou'),
             };
 
-            this.uuidObjectMap[dimensionObject.uuid] = dimensionObject;
+            this.uuidObjectMap.set(dimensionObject.uuid, dimensionObject);
 
             if (dimensionIndex !== 0) {
                 dimensionObject.parent = aaAllFloorObjects[dimensionIndex - 1][positionIndex];

@@ -69,17 +69,17 @@ export const PivotTableAxis = function(refs, layout, response, type, options = {
         const header = response.getHeaderByName(dimName);
         if (!header || !dimensionNameIdsMap[dimName]) return;
 
+        const headerIndex = header.getIndex();
         const activeIds = new Set();
         response.rows.forEach((row) => {
-            let id = row.getAt(header.getIndex());
-            if (header.isPrefix) {
-                id = response.getPrefixedId(id, dimName);
-            };
+            const rawId = row.getAt(headerIndex);
+            const id = header.isPrefix ? response.getPrefixedId(rawId, dimName) : rawId;
             activeIds.add(id);
         });
 
-        if (activeIds.size > 0) {
-            dimensionNameIdsMap[dimName] = dimensionNameIdsMap[dimName].filter((id) => activeIds.has(id));
+        const filteredIds = dimensionNameIdsMap[dimName].filter(id => activeIds.has(id));
+        if (filteredIds.length > 0) {
+            dimensionNameIdsMap[dimName] = filteredIds;
         }
     });
 

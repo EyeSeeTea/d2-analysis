@@ -6,7 +6,6 @@ import isBoolean from 'd2-utilizr/lib/isBoolean';
 import isEmpty from 'd2-utilizr/lib/isEmpty';
 import isArray from 'd2-utilizr/lib/isArray'
 import numberConstrain from 'd2-utilizr/lib/numberConstrain';
-import objectApplyIf from 'd2-utilizr/lib/objectApplyIf';
 import arrayContains from 'd2-utilizr/lib/arrayContains';
 import arrayClean from 'd2-utilizr/lib/arrayClean';
 

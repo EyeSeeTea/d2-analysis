@@ -380,6 +380,24 @@ Response.prototype.getNameById = function(id) {
     return (this.metaData.items[id] || {}).name || id;
 };
 
+Response.prototype.getAnalysisDisplayNameById = function (id) {
+    if (!this.metaData.dimensions[id] || id === "pe" || id === "ou") {
+        return this.getNameById(id);
+    }
+
+    const item = this.metaData.items[id] || {};
+    const appManager = this.getRefs().appManager;
+    const displayProperty = appManager ? appManager.getAnalyticsDisplayProperty() : "NAME";
+
+    if (displayProperty === "SHORTNAME") {
+        const header = this.getHeaderByName(id);
+        const shortName = header.column || undefined;
+        return shortName || item.name || id;
+    }
+
+    return item.name || id;
+};
+
 Response.prototype.getHierarchyNameById = function(id, isHierarchy, isHtml) {
     var metaData = this.metaData,
         name = '';

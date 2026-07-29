@@ -752,7 +752,7 @@ PivotTable.prototype.getColumnAxisLabel = function(rowIndex) {
 PivotTable.prototype.getRowAxisLabel = function(columnIndex) {
 
     if (this.rowAxis.dims) {
-        return this.response.getDisplayNameById(this.rowAxis.dimensionNames[columnIndex]);
+        return this.response.getAnalysisDisplayNameById(this.rowAxis.dimensionNames[columnIndex]);
     }
 
     return null;

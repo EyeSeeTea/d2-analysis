@@ -380,7 +380,7 @@ Response.prototype.getNameById = function(id) {
     return (this.metaData.items[id] || {}).name || id;
 };
 
-Response.prototype.getDisplayNameById = function (id) {
+Response.prototype.getAnalysisDisplayNameById = function (id) {
     if (!this.metaData.dimensions[id] || id === "pe" || id === "ou") {
         return this.getNameById(id);
     }

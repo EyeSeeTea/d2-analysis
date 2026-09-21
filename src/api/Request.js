@@ -7,6 +7,8 @@ import arrayClean from 'd2-utilizr/lib/arrayClean';
 import arrayContains from 'd2-utilizr/lib/arrayContains';
 import arrayFrom from 'd2-utilizr/lib/arrayFrom';
 
+import { unescape } from '../util/sanitize';
+
 export var Request;
 
 Request = function(refs, config) {
@@ -145,14 +147,14 @@ Request.prototype.setComplete = function(fn) {
 Request.prototype.url = function(extraParams) {
     var params = arrayClean([].concat(this.params, arrayFrom(extraParams)));
 
-    return this.baseUrl + (params.length ? '?' + params.join('&') : '');
+    return unescape(this.baseUrl + (params.length ? '?' + params.join('&') : ''));
 };
 
 // dep 1
 
 Request.prototype.run = function(config) {
     var t = this,
-        url = encodeURI(this.url());
+        url = this.url();
 
     config = isObject(config) ? config : {};
 

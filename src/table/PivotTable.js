@@ -737,7 +737,7 @@ PivotTable.prototype.getRowSortId = function(rowIndex, columnIndex) {
 PivotTable.prototype.getColumnAxisLabel = function(rowIndex) {
 
     if (this.colAxis.dims) {
-        return this.response.getNameById(this.colAxis.dimensionNames[rowIndex]);
+        return this.response.getAnalysisDisplayNameById(this.colAxis.dimensionNames[rowIndex]);
     }
 
     return null;

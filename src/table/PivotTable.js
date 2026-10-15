@@ -673,7 +673,7 @@ PivotTable.prototype.getDivisorValue = function(id) {
 /**
  * Gets uuids object map.
  *
- * @returns {object}
+ * @returns {Map}
  */
 PivotTable.prototype.getUuidObjectMap = function() {
     const mergedMap = new Map();

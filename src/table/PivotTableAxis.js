@@ -87,8 +87,10 @@ export const PivotTableAxis = function(refs, layout, response, type, options = {
         let dims;
 
         return this.items.map(dimension => {
-            if (dimension.sorted) dims = arrayPluck(dimension.items, 'id');
-            else                  dims = dimensionNameIdsMap[dimension.dimension];
+            if (dimension.sorted) {
+                const allowedIds = new Set(dimensionNameIdsMap[dimension.dimension]);
+                dims = arrayPluck(dimension.items, "id").filter((id) => allowedIds.has(id));
+            } else dims = dimensionNameIdsMap[dimension.dimension];
 
             this.size *= dims.length;
             aAccFloorWidth.push(this.size);

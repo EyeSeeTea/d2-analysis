@@ -36,7 +36,7 @@ export const PivotTableAxis = function(refs, layout, response, type, options = {
     this.response = response;
 
     this.totalLookup = {};
-    this.uuidObjectMap = {};
+    this.uuidObjectMap = new Map();
     this.items = [];
     this.span = [];
     this.ids = [];
@@ -63,12 +63,34 @@ export const PivotTableAxis = function(refs, layout, response, type, options = {
 
     const dimensionNameIdsMap = layout.getDimensionNameIdsMap(response, layout.hideNaData ? dimensionIdsFilterFn : null);
 
+    // Remove dimension IDs that have no data in response.
+    this.items.forEach((dimension) => {
+        const dimName = dimension.dimension;
+        const header = response.getHeaderByName(dimName);
+        if (!header || !dimensionNameIdsMap[dimName]) return;
+
+        const headerIndex = header.getIndex();
+        const activeIds = new Set();
+        response.rows.forEach((row) => {
+            const rawId = row.getAt(headerIndex);
+            const id = header.isPrefix ? response.getPrefixedId(rawId, dimName) : rawId;
+            activeIds.add(id);
+        });
+
+        const filteredIds = dimensionNameIdsMap[dimName].filter(id => activeIds.has(id));
+        if (filteredIds.length > 0) {
+            dimensionNameIdsMap[dimName] = filteredIds;
+        }
+    });
+
     const aaUniqueFloorIds = (() => {
         let dims;
 
         return this.items.map(dimension => {
-            if (dimension.sorted) dims = arrayPluck(dimension.items, 'id');
-            else                  dims = dimensionNameIdsMap[dimension.dimension];
+            if (dimension.sorted) {
+                const allowedIds = new Set(dimensionNameIdsMap[dimension.dimension]);
+                dims = arrayPluck(dimension.items, "id").filter((id) => allowedIds.has(id));
+            } else dims = dimensionNameIdsMap[dimension.dimension];
 
             this.size *= dims.length;
             aAccFloorWidth.push(this.size);
@@ -108,7 +130,7 @@ export const PivotTableAxis = function(refs, layout, response, type, options = {
                 isOrganisationUnit: response.hasIdByDimensionName(id, 'ou'),
             };
 
-            this.uuidObjectMap[dimensionObject.uuid] = dimensionObject;
+            this.uuidObjectMap.set(dimensionObject.uuid, dimensionObject);
 
             if (dimensionIndex !== 0) {
                 dimensionObject.parent = aaAllFloorObjects[dimensionIndex - 1][positionIndex];

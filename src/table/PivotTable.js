@@ -6,7 +6,6 @@ import isBoolean from 'd2-utilizr/lib/isBoolean';
 import isEmpty from 'd2-utilizr/lib/isEmpty';
 import isArray from 'd2-utilizr/lib/isArray'
 import numberConstrain from 'd2-utilizr/lib/numberConstrain';
-import objectApplyIf from 'd2-utilizr/lib/objectApplyIf';
 import arrayContains from 'd2-utilizr/lib/arrayContains';
 import arrayClean from 'd2-utilizr/lib/arrayClean';
 
@@ -674,13 +673,26 @@ PivotTable.prototype.getDivisorValue = function(id) {
 /**
  * Gets uuids object map.
  *
- * @returns {object}
+ * @returns {Map}
  */
 PivotTable.prototype.getUuidObjectMap = function() {
-    return objectApplyIf(
-        (this.colAxis ? this.colAxis.uuidObjectMap : {}),
-        (this.rowAxis ? this.rowAxis.uuidObjectMap : {})
-    );
+    const mergedMap = new Map();
+
+    if (this.colAxis && this.colAxis.uuidObjectMap) {
+        for (const [key, value] of this.colAxis.uuidObjectMap) {
+            mergedMap.set(key, value);
+        }
+    }
+
+    if (this.rowAxis && this.rowAxis.uuidObjectMap) {
+        for (const [key, value] of this.rowAxis.uuidObjectMap) {
+            if (!mergedMap.has(key)) {
+                mergedMap.set(key, value);
+            }
+        }
+    }
+
+    return mergedMap;
 };
 
 /**

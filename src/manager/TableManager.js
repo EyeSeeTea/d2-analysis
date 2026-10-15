@@ -128,7 +128,7 @@ TableManager = function(c) {
 
         // get objects
         for (var i = 0; i < uuids.length; i++) {
-            objects.push(uuidObjectMap[uuids[i]]);
+            objects.push(uuidObjectMap.get(uuids[i]));
         }
 
         // clear layoutConfig dimension items
@@ -412,19 +412,15 @@ TableManager = function(c) {
         };
 
         if (table.colAxis && table.colAxis.uuidObjectMap) {
-            for (const key in table.colAxis.uuidObjectMap) {
-                if (table.colAxis.uuidObjectMap.hasOwnProperty(key)) {
-                    setMouseHandler(table.colAxis.uuidObjectMap[key]);
-                }
-            }
+            table.colAxis.uuidObjectMap.forEach((value) => {
+                setMouseHandler(value);
+            });
         }
 
         if (table.rowAxis && table.rowAxis.uuidObjectMap) {
-            for (const key in table.rowAxis.uuidObjectMap) {
-                if (table.rowAxis.uuidObjectMap.hasOwnProperty(key)) {
-                    setMouseHandler(table.rowAxis.uuidObjectMap[key]);
-                }
-            }
+            table.rowAxis.uuidObjectMap.forEach((value) => {
+                setMouseHandler(value);
+            });
         }
     }
 };

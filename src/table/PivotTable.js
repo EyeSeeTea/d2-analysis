@@ -66,7 +66,7 @@ import { WHITE_COLOR, BLACK_COLOR } from '../table/PivotTableConstants';
  * @param {object} rowAxis
  * @param {object} [options={}]
  */
-export const PivotTable = function(refs, layout, response, options = {}) {
+export const PivotTable = function (refs, layout, response, options = {}) {
     this.options = {
         renderLimit: 100000,
         renderOffset: 1,
@@ -93,6 +93,9 @@ export const PivotTable = function(refs, layout, response, options = {}) {
         ? this.options.filterNoData
         : response.getSize(layout) > this.options.renderLimit;
 
+    // Removing the empty dimensions also hides the empty rows
+    this.options.hideEmptyRows = this.options.hideEmptyRows || filterNoData;
+
     let colAxisOptions = {
         showSubTotals: !!layout.showRowSubTotals,
         showTotals: !!layout.showRowTotals,
@@ -103,8 +106,8 @@ export const PivotTable = function(refs, layout, response, options = {}) {
     let rowAxisOptions = {
         showSubTotals: !!layout.showColSubTotals,
         showTotals: !!layout.showColTotals,
-        hideEmpty: !!layout.hideEmptyRows,
-        filterNoData: filterNoData || !!layout.hideEmptyRows,
+        hideEmpty: this.options.hideEmptyRows,
+        filterNoData: this.options.hideEmptyRows,
     };
 
     this.colAxis = new PivotTableAxis(refs, layout, response, COLUMN_AXIS, colAxisOptions);
@@ -129,14 +132,13 @@ export const PivotTable = function(refs, layout, response, options = {}) {
     this.optionConfig = refs.optionConfig;
     this.uiManager = refs.uiManager;
 
-    this.legendSet = isObject(layout.legendSet)
-        ? this.appManager.getLegendSetById(layout.legendSet.id) : null;
+    this.legendSet = isObject(layout.legendSet) ? this.appManager.getLegendSetById(layout.legendSet.id) : null;
 
     this.legendDisplayStyle = layout.legendDisplayStyle;
     this.legendDisplayStrategy = layout.legendDisplayStrategy;
 
     this.valueCounter = 0;
-};
+};;
 
 PivotTable.prototype.initialize = function() {
 

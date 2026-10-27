@@ -25,6 +25,7 @@ export const PivotTableAxis = function(refs, layout, response, type, options = {
         showTotals: false,
         showSubTotals: false,
         hideEmpty: false,
+        filterNoData: false,
         ...options,
     }
 
@@ -64,24 +65,26 @@ export const PivotTableAxis = function(refs, layout, response, type, options = {
     const dimensionNameIdsMap = layout.getDimensionNameIdsMap(response, layout.hideNaData ? dimensionIdsFilterFn : null);
 
     // Remove dimension IDs that have no data in response.
-    this.items.forEach((dimension) => {
-        const dimName = dimension.dimension;
-        const header = response.getHeaderByName(dimName);
-        if (!header || !dimensionNameIdsMap[dimName]) return;
+    if (this.options.filterNoData) {
+        this.items.forEach((dimension) => {
+            const dimName = dimension.dimension;
+            const header = response.getHeaderByName(dimName);
+            if (!header || !dimensionNameIdsMap[dimName]) return;
 
-        const headerIndex = header.getIndex();
-        const activeIds = new Set();
-        response.rows.forEach((row) => {
-            const rawId = row.getAt(headerIndex);
-            const id = header.isPrefix ? response.getPrefixedId(rawId, dimName) : rawId;
-            activeIds.add(id);
+            const headerIndex = header.getIndex();
+            const activeIds = new Set();
+            response.rows.forEach((row) => {
+                const rawId = row.getAt(headerIndex);
+                const id = header.isPrefix ? response.getPrefixedId(rawId, dimName) : rawId;
+                activeIds.add(id);
+            });
+
+            const filteredIds = dimensionNameIdsMap[dimName].filter(id => activeIds.has(id));
+            if (filteredIds.length > 0) {
+                dimensionNameIdsMap[dimName] = filteredIds;
+            }
         });
-
-        const filteredIds = dimensionNameIdsMap[dimName].filter(id => activeIds.has(id));
-        if (filteredIds.length > 0) {
-            dimensionNameIdsMap[dimName] = filteredIds;
-        }
-    });
+    }
 
     const aaUniqueFloorIds = (() => {
         let dims;

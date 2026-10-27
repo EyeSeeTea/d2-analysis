@@ -80,23 +80,32 @@ export const PivotTable = function(refs, layout, response, options = {}) {
         showHierarchy: !!layout.showHierarchy,
         totalsAggregationType: layout.totalsAggregationType,
         numberType: layout.numberType,
+        // Remove rows and columns without data: event reports app will pass true or false.
+        // null used as a fallback that applies the filter only when the table is above the render limit.
+        filterNoData: null,
         debug: {
             clipping: false,
         },
         ...options,
-    }
+    };
+
+    const filterNoData = isBoolean(this.options.filterNoData)
+        ? this.options.filterNoData
+        : response.getSize(layout) > this.options.renderLimit;
 
     let colAxisOptions = {
         showSubTotals: !!layout.showRowSubTotals,
         showTotals: !!layout.showRowTotals,
         hideEmpty: !!layout.hideEmptyColumns,
-    }
+        filterNoData: filterNoData,
+    };
 
     let rowAxisOptions = {
         showSubTotals: !!layout.showColSubTotals,
         showTotals: !!layout.showColTotals,
         hideEmpty: !!layout.hideEmptyRows,
-    }
+        filterNoData: filterNoData || !!layout.hideEmptyRows,
+    };
 
     this.colAxis = new PivotTableAxis(refs, layout, response, COLUMN_AXIS, colAxisOptions);
     this.rowAxis = new PivotTableAxis(refs, layout, response, ROW_AXIS, rowAxisOptions);
@@ -289,7 +298,8 @@ PivotTable.prototype.doShowDimensionLabels = function() {
  * @returns {boolean}
  */
 PivotTable.prototype.doClipping = function() {
-    return this.response.getSize(this.layout) > this.options.renderLimit ||
+    // Use the built axes, so rows and columns removed by the no-data filter are not counted
+    return this.rowAxis.size * this.colAxis.size > this.options.renderLimit ||
         this.options.debug.clipping;
 };
 

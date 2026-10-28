@@ -497,7 +497,7 @@ UiManager = function(refs) {
 
         // destroy handler
         config.modal = true;
-        config.destroyOnBlur = true;
+        config.destroyOnBlur = obj.destroyOnBlur !== false;
 
         // listeners
         config.listeners = {

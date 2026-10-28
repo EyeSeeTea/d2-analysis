@@ -6,7 +6,6 @@ import isBoolean from 'd2-utilizr/lib/isBoolean';
 import isEmpty from 'd2-utilizr/lib/isEmpty';
 import isArray from 'd2-utilizr/lib/isArray'
 import numberConstrain from 'd2-utilizr/lib/numberConstrain';
-import objectApplyIf from 'd2-utilizr/lib/objectApplyIf';
 import arrayContains from 'd2-utilizr/lib/arrayContains';
 import arrayClean from 'd2-utilizr/lib/arrayClean';
 
@@ -67,7 +66,7 @@ import { WHITE_COLOR, BLACK_COLOR } from '../table/PivotTableConstants';
  * @param {object} rowAxis
  * @param {object} [options={}]
  */
-export const PivotTable = function(refs, layout, response, options = {}) {
+export const PivotTable = function (refs, layout, response, options = {}) {
     this.options = {
         renderLimit: 100000,
         renderOffset: 1,
@@ -81,23 +80,35 @@ export const PivotTable = function(refs, layout, response, options = {}) {
         showHierarchy: !!layout.showHierarchy,
         totalsAggregationType: layout.totalsAggregationType,
         numberType: layout.numberType,
+        // Remove rows and columns without data: event reports app will pass true or false.
+        // null used as a fallback that applies the filter only when the table is above the render limit.
+        filterNoData: null,
         debug: {
             clipping: false,
         },
         ...options,
-    }
+    };
+
+    const filterNoData = isBoolean(this.options.filterNoData)
+        ? this.options.filterNoData
+        : response.getSize(layout) > this.options.renderLimit;
+
+    // Removing the empty dimensions also hides the empty rows
+    this.options.hideEmptyRows = this.options.hideEmptyRows || filterNoData;
 
     let colAxisOptions = {
         showSubTotals: !!layout.showRowSubTotals,
         showTotals: !!layout.showRowTotals,
         hideEmpty: !!layout.hideEmptyColumns,
-    }
+        filterNoData: filterNoData,
+    };
 
     let rowAxisOptions = {
         showSubTotals: !!layout.showColSubTotals,
         showTotals: !!layout.showColTotals,
-        hideEmpty: !!layout.hideEmptyRows,
-    }
+        hideEmpty: this.options.hideEmptyRows,
+        filterNoData: this.options.hideEmptyRows,
+    };
 
     this.colAxis = new PivotTableAxis(refs, layout, response, COLUMN_AXIS, colAxisOptions);
     this.rowAxis = new PivotTableAxis(refs, layout, response, ROW_AXIS, rowAxisOptions);
@@ -121,14 +132,13 @@ export const PivotTable = function(refs, layout, response, options = {}) {
     this.optionConfig = refs.optionConfig;
     this.uiManager = refs.uiManager;
 
-    this.legendSet = isObject(layout.legendSet)
-        ? this.appManager.getLegendSetById(layout.legendSet.id) : null;
+    this.legendSet = isObject(layout.legendSet) ? this.appManager.getLegendSetById(layout.legendSet.id) : null;
 
     this.legendDisplayStyle = layout.legendDisplayStyle;
     this.legendDisplayStrategy = layout.legendDisplayStrategy;
 
     this.valueCounter = 0;
-};
+};;
 
 PivotTable.prototype.initialize = function() {
 
@@ -290,7 +300,8 @@ PivotTable.prototype.doShowDimensionLabels = function() {
  * @returns {boolean}
  */
 PivotTable.prototype.doClipping = function() {
-    return this.response.getSize(this.layout) > this.options.renderLimit ||
+    // Use the built axes, so rows and columns removed by the no-data filter are not counted
+    return this.rowAxis.size * this.colAxis.size > this.options.renderLimit ||
         this.options.debug.clipping;
 };
 
@@ -674,13 +685,26 @@ PivotTable.prototype.getDivisorValue = function(id) {
 /**
  * Gets uuids object map.
  *
- * @returns {object}
+ * @returns {Map}
  */
 PivotTable.prototype.getUuidObjectMap = function() {
-    return objectApplyIf(
-        (this.colAxis ? this.colAxis.uuidObjectMap : {}),
-        (this.rowAxis ? this.rowAxis.uuidObjectMap : {})
-    );
+    const mergedMap = new Map();
+
+    if (this.colAxis && this.colAxis.uuidObjectMap) {
+        for (const [key, value] of this.colAxis.uuidObjectMap) {
+            mergedMap.set(key, value);
+        }
+    }
+
+    if (this.rowAxis && this.rowAxis.uuidObjectMap) {
+        for (const [key, value] of this.rowAxis.uuidObjectMap) {
+            if (!mergedMap.has(key)) {
+                mergedMap.set(key, value);
+            }
+        }
+    }
+
+    return mergedMap;
 };
 
 /**

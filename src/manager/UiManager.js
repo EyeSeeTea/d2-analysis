@@ -497,7 +497,7 @@ UiManager = function(refs) {
 
         // destroy handler
         config.modal = true;
-        config.destroyOnBlur = true;
+        config.destroyOnBlur = obj.destroyOnBlur !== false;
 
         // listeners
         config.listeners = {
@@ -550,6 +550,17 @@ UiManager = function(refs) {
 
         ConfirmWindow(refs, title, i18n.render_table_warning,
             "Continue", fn, null, cancelFn, true).show();
+    };
+
+    t.confirmHideEmptyItems = function (title, hideFn, showAllFn, cancelFn, rowsAlreadyHidden) {
+        var i18n = t.i18nManager ? t.i18nManager.get() : {};
+
+        var msg = rowsAlreadyHidden ? i18n.hide_empty_columns_warning : i18n.hide_empty_items_warning;
+
+        ConfirmWindow(refs, title, msg, i18n.hide_empty || "Hide empty", hideFn, null, cancelFn, true, {
+            text: i18n.show_all || "Show all",
+            fn: showAllFn,
+        }).show();
     };
 
     t.confirmCustom = function(title, msg, btnText, fn, applyConfig) {
